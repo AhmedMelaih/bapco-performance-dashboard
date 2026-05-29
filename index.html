@@ -256,7 +256,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .bsc-row:last-child{border:none}
 .bsc-name{flex:1;font-size:.76rem;color:var(--text2)}
 .bsc-track{flex:none;width:52px;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
-.bsc-bar{height:100%;width:0;border-radius:2px;
+.bsc-bar{height:100%;width:100%;border-radius:2px;
   transform-origin:left;transform:scaleX(0);
   transition:transform 1s cubic-bezier(.16,1,.3,1)}
 .bsc-val{font-size:.78rem;font-weight:700;min-width:46px;text-align:right;
@@ -1052,7 +1052,15 @@ function hideTip(){tip.style.opacity='0';}
 function moveTip(e){tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-8)+'px';}
 
 /* ── Bar animations ── */
-function animBars(sel){ document.querySelectorAll(sel).forEach(b=>{b.style.transform='scaleX(0)';requestAnimationFrame(()=>setTimeout(()=>{b.style.transform=`scaleX(${parseFloat(b.dataset.w||1)})`;},50));});}
+function animBars(sel){
+  document.querySelectorAll(sel).forEach(b=>{
+    b.style.transition='none';
+    b.style.transform='scaleX(0)';
+    b.offsetWidth; // force reflow so the reset is committed before transition re-enables
+    b.style.transition='';
+    requestAnimationFrame(()=>{ b.style.transform=`scaleX(${parseFloat(b.dataset.w||1)})`; });
+  });
+}
 
 /* ── GPS counter ── */
 function animGps(target){
