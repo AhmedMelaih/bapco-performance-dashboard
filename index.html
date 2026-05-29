@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bapco Energies — Group Performance Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       DESIGN TOKENS  (from DESIGN.md — ahmedmelaih.github.io)
+    ============================================================ */
+    :root {
+      --navy:       #0a192f;
+      --navy2:      #112240;
+      --navy3:      #1d3461;
+      --navy-h:     #152a4a;
+      --teal:       #64ffda;
+      --teal-bg:    rgba(100,255,218,0.08);
+      --teal-bg-h:  rgba(100,255,218,0.15);
+      --teal-b:     rgba(100,255,218,0.20);
+      --teal-b-h:   rgba(100,255,218,0.35);
+      --slate:      #8892b0;
+      --slate2:     #a8b2d8;
+      --slate3:     #ccd6f6;
+      --white:      #e6f1ff;
+      --green:      #0ea472;
+      --amber:      #d4881a;
+      --red:        #e8192c;
+      --border:     rgba(255,255,255,0.06);
+      --border2:    rgba(255,255,255,0.04);
+      --divider:    1px solid rgba(255,255,255,0.04);
+      --shadow-sm:  0 4px 12px rgba(2,12,27,0.4);
+      --shadow-md:  0 8px 24px rgba(2,12,27,0.5);
+      --shadow-lg:  0 16px 36px rgba(2,12,27,0.6);
+      --ease:       cubic-bezier(0.4, 0, 0.2, 1);
+      --radius:     6px;
+      --radius-sm:  3px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--navy);
+      color: var(--slate3);
+      font-size: 0.875rem;
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; }
+
+    /* HEADER */
+    .site-header {
+      position: sticky; top: 0; z-index: 1000;
+      background: rgba(10,25,47,0.97);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-bottom: var(--divider);
+      height: 56px; display: flex; align-items: center;
+      padding: 0 1.75rem; gap: 1.25rem;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+    .header-div { width: 1px; height: 22px; background: rgba(255,255,255,0.12); flex-shrink: 0; }
+    .header-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem; font-weight: 500; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--slate2);
+      flex-shrink: 0; white-space: nowrap;
+    }
+    .tab-nav { display: flex; align-items: center; gap: 0.25rem; margin-left: auto; flex-shrink: 0; }
+    .tab-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem; font-weight: 500; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--slate);
+      background: none; border: none; cursor: pointer;
+      padding: 0.4rem 0.75rem; border-radius: var(--radius-sm);
+      transition: color 0.2s var(--ease);
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .tab-btn::after {
+      content: ''; display: block; height: 2px; width: 20px;
+      background: var(--teal); border-radius: 1px; opacity: 0;
+      transition: width 0.2s var(--ease), opacity 0.2s var(--ease);
+    }
+    .tab-btn:hover { color: var(--slate2); }
+    .tab-btn:hover::after { opacity: 0.5; width: 28px; }
+    .tab-btn.active { color: var(--teal); }
+    .tab-btn.active::after { opacity: 1; width: 36px; }
+    .header-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+    .live-chip {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.67rem; font-weight: 500;
+      color: var(--teal); background: var(--teal-bg); border: 1px solid var(--teal-b);
+      border-radius: var(--radius-sm); padding: 3px 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--teal);
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.75); }
+    }
+    .user-chip {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.67rem;
+      color: var(--slate); white-space: nowrap; display: none;
+    }
+    @media (min-width: 960px) { .user-chip { display: block; } }
+
+    /* PERIOD BAR */
+    .period-bar {
+      background: var(--navy2); border-bottom: var(--divider);
+      padding: 0.55rem 1.75rem; display: flex; align-items: center;
+      gap: 1rem; flex-wrap: wrap;
+    }
+    .period-btns { display: flex; gap: 0.35rem; }
+    .period-btn {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.67rem;
+      font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--slate); background: none; border: 1px solid transparent;
+      border-radius: var(--radius-sm); padding: 3px 10px; cursor: pointer;
+      transition: all 0.15s var(--ease);
+    }
+    .period-btn:hover { color: var(--slate3); border-color: var(--border); }
+    .period-btn.active { color: var(--teal); background: var(--teal-bg); border-color: var(--teal-b); }
+    .period-sep { width: 1px; height: 18px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
+    .period-info {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.67rem;
+      color: var(--slate); letter-spacing: 0.03em;
+    }
+    .period-info span { color: var(--slate2); }
+    #export-btn {
+      margin-left: auto; font-family: 'JetBrains Mono', monospace;
+      font-size: 0.67rem; font-weight: 500; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--teal); background: var(--teal-bg);
+      border: 1px solid var(--teal-b); border-radius: var(--radius-sm);
+      padding: 4px 14px; cursor: pointer; transition: all 0.2s var(--ease);
+    }
+    #export-btn:hover { background: var(--teal-bg-h); border-color: var(--teal); }
+
+    /* SHELL */
+    .shell { max-width: 1440px; margin: 0 auto; padding: 1.75rem; }
+
+    /* VIEWS */
+    .view { display: none; }
+    .view.active { display: block; animation: fadeUp 0.28s var(--ease) both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* SECTION TITLES */
+    .section-title {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--teal); margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border2); }
+
+    /* CARDS */
+    .card {
+      background: var(--navy2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease),
+                  border-color 0.22s var(--ease), background 0.22s var(--ease);
+    }
+    .card:hover {
+      transform: translateY(-4px); box-shadow: var(--shadow-lg);
+      border-color: var(--teal-b-h); background: var(--navy-h);
+    }
+
+    /* KPI ROW */
+    .kpi-row {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1rem; margin-bottom: 1.5rem;
+    }
+    @media (max-width: 960px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .kpi-row { grid-template-columns: 1fr; } }
+    .kpi-card {
+      background: var(--navy2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem 1.25rem 1.1rem;
+      display: flex; align-items: center; gap: 1.1rem;
+      transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease),
+                  border-color 0.22s var(--ease), background 0.22s var(--ease);
+    }
+    .kpi-card:hover {
+      transform: translateY(-4px); box-shadow: var(--shadow-lg);
+      border-color: var(--teal-b-h); background: var(--navy-h);
+    }
+    .kpi-ring { flex-shrink: 0; }
+    .kpi-body { flex: 1; min-width: 0; }
+    .kpi-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.67rem;
+      font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--slate); margin-bottom: 0.3rem;
+    }
+    .kpi-value {
+      font-family: 'JetBrains Mono', monospace; font-size: 1.5rem;
+      font-weight: 700; color: var(--white); line-height: 1.15; margin-bottom: 0.2rem;
+    }
+    .kpi-value .unit { font-size: 0.75rem; font-weight: 400; color: var(--slate2); margin-left: 2px; }
+    .kpi-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.67rem; color: var(--slate); margin-bottom: 0.3rem; }
+    .kpi-delta {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 500;
+      padding: 2px 8px; border-radius: var(--radius-sm);
+    }
+    .kpi-delta.up   { color: var(--teal);   background: var(--teal-bg); }
+    .kpi-delta.warn { color: var(--amber);  background: rgba(212,136,26,0.1); }
+    .kpi-delta.down { color: var(--red);    background: rgba(232,25,44,0.1); }
+    .kpi-delta.flat { color: var(--slate2); background: rgba(255,255,255,0.04); }
+    .kpi-delta.good { color: var(--green);  background: rgba(14,164,114,0.1); }
+
+    .ring-svg { display: block; overflow: visible; }
+    .ring-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 4; }
+    .ring-arc { fill: none; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 195; stroke-dashoffset: 195; }
+
+    /* BSC */
+    .bsc-section { margin-bottom: 1.5rem; }
+    .bsc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    @media (max-width: 768px) { .bsc-grid { grid-template-columns: 1fr; } }
+    .bsc-quad {
+      background: var(--navy2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem; cursor: pointer;
+      transition: border-color 0.22s var(--ease), background 0.22s var(--ease), box-shadow 0.22s var(--ease);
+    }
+    .bsc-quad:hover { border-color: var(--teal-b-h); background: var(--navy-h); }
+    .bsc-quad.active { border-color: var(--teal-b); box-shadow: 0 0 0 1px var(--teal-b) inset; }
+    .bsc-quad-title {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.67rem;
+      font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--teal); margin-bottom: 0.9rem;
+    }
+    .bsc-row {
+      display: grid; grid-template-columns: 1fr 90px 52px 14px;
+      align-items: center; gap: 0.6rem;
+      padding: 0.3rem 0; border-bottom: var(--divider);
+    }
+    .bsc-row:last-child { border-bottom: none; }
+    .bsc-row-label { font-size: 0.73rem; color: var(--slate2); }
+    .bsc-bar-wrap { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+    .bsc-bar {
+      height: 100%; background: var(--teal); border-radius: 2px;
+      transform-origin: left; transform: scaleX(0);
+      transition: transform 0.6s var(--ease);
+    }
+    .bsc-bar.green { background: var(--green); }
+    .bsc-bar.amber { background: var(--amber); }
+    .bsc-bar.red   { background: var(--red); }
+    .bsc-row-val { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--slate3); text-align: right; }
+    .rag { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; justify-self: center; }
+    .rag.g { background: var(--green); box-shadow: 0 0 5px var(--green); }
+    .rag.a { background: var(--amber); box-shadow: 0 0 5px var(--amber); }
+    .rag.r { background: var(--red);   box-shadow: 0 0 5px var(--red); }
+
+    /* CHARTS */
+    .chart-row { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1.5rem; }
+    @media (max-width: 960px) { .chart-row { grid-template-columns: 1fr; } }
+    .chart-card {
+      background: var(--navy2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+      transition: border-color 0.22s var(--ease);
+    }
+    .chart-card:hover { border-color: var(--teal-b); }
+    .chart-card-title {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.67rem;
+      font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--teal); margin-bottom: 1rem;
+    }
+    #sbu-svg, #ops-svg, #trend-svg { width: 100%; overflow: visible; }
+
+    /* BOTTOM ROW */
+    .bottom-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem; }
+    @media (max-width: 960px) { .bottom-row { grid-template-columns: 1fr; } }
+
+    .rtbl { width: 100%; border-collapse: collapse; }
+    .rtbl th {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.67rem;
+      font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--slate); text-align: left;
+      padding: 0 0.75rem 0.6rem; border-bottom: var(--divider);
+    }
+    .rtbl td { font-size: 0.75rem; color: var(--slate2); padding: 0.55rem 0.75rem; border-bottom: var(--divider); }
+    .rtbl tr:last-child td { border-bottom: none; }
+    .rtbl tr:hover td { color: var(--slate3); }
+    .rtbl .tbl-main { color: var(--slate3); font-weight: 500; }
+    .view-btn {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+      color: var(--teal); background: var(--teal-bg); border: 1px solid var(--teal-b);
+      border-radius: var(--radius-sm); padding: 2px 10px; cursor: pointer;
+      transition: all 0.15s var(--ease);
+    }
+    .view-btn:hover { background: var(--teal-bg-h); border-color: var(--teal); }
+
+    .alert-row { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.65rem 0; border-bottom: var(--divider); }
+    .alert-row:last-child { border-bottom: none; }
+    .alert-icon {
+      width: 28px; height: 28px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+    }
+    .alert-icon.crit { background: rgba(232,25,44,0.12);  color: var(--red);   border: 1px solid rgba(232,25,44,0.2); }
+    .alert-icon.warn { background: rgba(212,136,26,0.12); color: var(--amber); border: 1px solid rgba(212,136,26,0.2); }
+    .alert-icon.info { background: var(--teal-bg);        color: var(--teal);  border: 1px solid var(--teal-b); }
+    .alert-icon.good { background: rgba(14,164,114,0.12); color: var(--green); border: 1px solid rgba(14,164,114,0.2); }
+    .alert-title { font-size: 0.75rem; font-weight: 600; color: var(--slate3); line-height: 1.35; }
+    .alert-desc  { font-size: 0.7rem; color: var(--slate); margin-top: 2px; }
+
+    /* OPERATIONS */
+    .tput-section { padding: 0.25rem 0; }
+    .tput-row {
+      display: grid; grid-template-columns: 120px 1fr 80px;
+      align-items: center; gap: 0.75rem;
+      padding: 0.5rem 0; border-bottom: var(--divider);
+    }
+    .tput-row:last-child { border-bottom: none; }
+    .tput-label { font-family: 'JetBrains Mono', monospace; font-size: 0.67rem; color: var(--slate2); }
+    .tput-bars  { display: flex; flex-direction: column; gap: 4px; }
+    .tput-bar-wrap { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+    .tput-inner { height: 100%; border-radius: 2px; transform-origin: left; transform: scaleX(0); transition: transform 0.8s var(--ease); }
+    .tput-inner.now    { background: var(--teal); }
+    .tput-inner.target { background: rgba(100,255,218,0.22); }
+    .tput-val { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--teal); text-align: right; }
+    .legend { display: flex; gap: 1.25rem; margin-top: 0.9rem; }
+    .legend-item { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--slate); display: flex; align-items: center; gap: 6px; }
+    .legend-swatch { display: inline-block; width: 16px; height: 3px; border-radius: 2px; }
+
+    /* BMP */
+    .stat-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    @media (max-width: 480px) { .stat-strip { grid-template-columns: 1fr; } }
+    .stat-cell {
+      background: var(--navy2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .stat-cell::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--teal), transparent); opacity: 0.5;
+    }
+    .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 0.67rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate); margin-bottom: 0.5rem; }
+    .stat-num { font-family: 'JetBrains Mono', monospace; font-size: 1.6rem; font-weight: 700; color: var(--teal); line-height: 1.15; }
+    .stat-sub { font-size: 0.7rem; color: var(--slate); margin-top: 0.25rem; }
+
+    .unit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    @media (max-width: 960px) { .unit-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .unit-grid { grid-template-columns: 1fr; } }
+    .unit-card {
+      background: var(--navy2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+      transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease), border-color 0.22s var(--ease), background 0.22s var(--ease);
+    }
+    .unit-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--teal-b-h); background: var(--navy-h); }
+    .unit-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate); margin-bottom: 0.3rem; }
+    .unit-name { font-size: 0.8rem; font-weight: 600; color: var(--slate3); margin-bottom: 0.75rem; line-height: 1.35; }
+    .unit-pct { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--teal); margin-bottom: 0.5rem; }
+    .unit-pct.amber { color: var(--amber); }
+    .unit-bar-wrap { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-bottom: 0.5rem; overflow: hidden; }
+    .unit-bar { height: 100%; background: var(--teal); border-radius: 2px; transform-origin: left; transform: scaleX(0); transition: transform 0.8s var(--ease); }
+    .unit-bar.amber { background: var(--amber); }
+    .unit-status { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--slate); }
+
+    .pi-table { width: 100%; border-collapse: collapse; }
+    .pi-table th {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+      font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--slate); text-align: left; padding: 0 0.75rem 0.6rem; border-bottom: var(--divider);
+    }
+    .pi-table th.r { text-align: right; }
+    .pi-table td { padding: 0.6rem 0.75rem; border-bottom: var(--divider); vertical-align: middle; }
+    .pi-table tr:last-child td { border-bottom: none; }
+    .pi-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .pi-name { font-size: 0.78rem; font-weight: 500; color: var(--slate3); }
+    .pi-val { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--slate2); text-align: right; }
+    .pi-prog-wrap { height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; min-width: 60px; }
+    .pi-prog { height: 100%; background: var(--teal); border-radius: 2px; transform-origin: left; transform: scaleX(0); transition: transform 0.8s var(--ease); }
+    .pi-prog.amber { background: var(--amber); }
+    .pi-prog.red   { background: var(--red); }
+    .status-chip { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; font-weight: 500; padding: 2px 8px; border-radius: var(--radius-sm); white-space: nowrap; }
+    .sc-on     { color: var(--teal);  background: var(--teal-bg);       border: 1px solid var(--teal-b); }
+    .sc-delay  { color: var(--amber); background: rgba(212,136,26,0.1); border: 1px solid rgba(212,136,26,0.2); }
+    .sc-behind { color: var(--red);   background: rgba(232,25,44,0.1);  border: 1px solid rgba(232,25,44,0.2); }
+    .sc-done   { color: var(--green); background: rgba(14,164,114,0.1); border: 1px solid rgba(14,164,114,0.2); }
+
+    .bmp-summary-card { background: var(--navy2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .bmp-summary-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1.25rem; border-bottom: var(--divider); }
+    .bmp-summary-row:last-child { border-bottom: none; }
+    .bmp-s-label { font-size: 0.75rem; color: var(--slate2); }
+    .bmp-s-val { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--teal); font-weight: 500; }
+
+    /* SAFETY */
+    .safety-hero {
+      background: var(--navy2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2.25rem 2rem;
+      text-align: center; margin-bottom: 1.5rem;
+      position: relative; overflow: hidden;
+    }
+    .safety-hero::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--teal), transparent); opacity: 0.7;
+    }
+    .safety-hero-label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin-bottom: 0.75rem; }
+    .safety-hero-num { font-family: 'JetBrains Mono', monospace; font-size: 2.6rem; font-weight: 700; color: var(--teal); line-height: 1.15; margin-bottom: 0.5rem; }
+    .safety-hero-sub { font-size: 0.82rem; color: var(--slate2); }
+    .safety-kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    @media (max-width: 768px) { .safety-kpi-grid { grid-template-columns: 1fr; } }
+    .safety-kpi-row { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: var(--divider); }
+    .safety-kpi-row:last-child { border-bottom: none; }
+    .safety-kpi-name { font-size: 0.75rem; color: var(--slate2); }
+    .safety-kpi-val { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 600; color: var(--teal); }
+    .safety-kpi-val.zero { color: var(--green); }
+    .safety-kpi-val.warn { color: var(--amber); }
+    .fact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    @media (max-width: 768px) { .fact-grid { grid-template-columns: repeat(2, 1fr); } }
+    .fact-card {
+      background: var(--navy2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem; text-align: center;
+      transition: all 0.22s var(--ease);
+    }
+    .fact-card:hover { border-color: var(--teal-b); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .fact-label { font-family: 'JetBrains Mono', monospace; font-size: 0.67rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate); margin-bottom: 0.5rem; }
+    .fact-val { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 700; color: var(--white); line-height: 1.15; }
+    .fact-sub { font-size: 0.7rem; color: var(--slate); margin-top: 0.25rem; }
+
+    /* TOOLTIP */
+    #tooltip {
+      position: fixed; background: var(--navy3);
+      border: 1px solid var(--teal-b); border-radius: var(--radius-sm);
+      padding: 6px 12px; font-family: 'JetBrains Mono', monospace;
+      font-size: 0.67rem; color: var(--slate3);
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.15s var(--ease);
+      z-index: 9999; white-space: nowrap; box-shadow: var(--shadow-md);
+    }
+    #tooltip strong { color: var(--teal); }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--navy); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    @media (max-width: 768px) {
+      .shell { padding: 1rem; }
+      .site-header { padding: 0 1rem; gap: 0.75rem; }
+      .period-bar { padding: 0.5rem 1rem; }
+      .header-title { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="tooltip"></div>
+
+<header class="site-header">
+  <div class="logo-wrap">
+    <a href="https://www.bapcoenergies.com" target="_blank" rel="noopener">
+      <svg width="130" height="32" viewBox="0 0 130 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <text x="0" y="24" font-family="'JetBrains Mono',monospace" font-size="20" font-weight="700" fill="#64ffda">BAPCO</text>
+        <line x1="70" y1="4" x2="70" y2="28" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+        <text x="76" y="24" font-family="'JetBrains Mono',monospace" font-size="10" font-weight="400" fill="#8892b0">ENERGIES</text>
+      </svg>
+    </a>
+  </div>
+  <div class="header-div"></div>
+  <span class="header-title">Group Performance Dashboard</span>
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="operations">Operations</button>
+    <button class="tab-btn" data-tab="bmp">BMP Portfolio</button>
+    <button class="tab-btn" data-tab="safety">Safety</button>
+  </nav>
+  <div class="header-right">
+    <div class="live-chip"><div class="live-dot"></div>Live</div>
+    <span class="user-chip">Ahmed Melaih &nbsp;/&nbsp; Sr. Specialist — Group Performance</span>
+  </div>
+</header>
+
+<div class="period-bar">
+  <div class="period-btns">
+    <button class="period-btn" data-period="q1">Q1</button>
+    <button class="period-btn" data-period="q2">Q2</button>
+    <button class="period-btn active" data-period="q3">Q3</button>
+    <button class="period-btn" data-period="q4">Q4</button>
+    <button class="period-btn" data-period="ytd">YTD 2025</button>
+  </div>
+  <div class="period-sep"></div>
+  <span class="period-info">FY 2025 Corporate Scorecard &nbsp;·&nbsp; Last updated: <span>24 May 2025</span></span>
+  <button id="export-btn">↓ Export PDF</button>
+</div>
+
+<main class="shell">
+
+<!-- OVERVIEW -->
+<div id="view-overview" class="view active">
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-ring">
+        <svg class="ring-svg" width="72" height="72" viewBox="0 0 72 72">
+          <circle class="ring-track" cx="36" cy="36" r="31"/>
+          <circle class="ring-arc" id="ring1" cx="36" cy="36" r="31" stroke="#64ffda" data-p="0.874" transform="rotate(-90 36 36)"/>
+          <text x="36" y="40" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#e6f1ff" id="gps-lbl">87.4%</text>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Group Performance</div>
+        <div class="kpi-value" id="gps-val">87.4<span class="unit">%</span></div>
+        <div class="kpi-meta">Target: 85%</div>
+        <div class="kpi-delta up">▲ +2.4 pp vs. benchmark</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ring">
+        <svg class="ring-svg" width="72" height="72" viewBox="0 0 72 72">
+          <circle class="ring-track" cx="36" cy="36" r="31"/>
+          <circle class="ring-arc" id="ring2" cx="36" cy="36" r="31" stroke="#d4881a" data-p="0.778" transform="rotate(-90 36 36)"/>
+          <text x="36" y="40" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="700" fill="#e6f1ff">7/9</text>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">SBUs On Target</div>
+        <div class="kpi-value">7<span class="unit">/9</span></div>
+        <div class="kpi-meta">2 interventions required</div>
+        <div class="kpi-delta warn">⚠ Upstream · Digital Svcs</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ring">
+        <svg class="ring-svg" width="72" height="72" viewBox="0 0 72 72">
+          <circle class="ring-track" cx="36" cy="36" r="31"/>
+          <circle class="ring-arc" id="ring3" cx="36" cy="36" r="31" stroke="#8892b0" data-p="0.668" transform="rotate(-90 36 36)"/>
+          <text x="36" y="35" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="700" fill="#e6f1ff">267k</text>
+          <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#8892b0">bpd</text>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Refinery Throughput</div>
+        <div class="kpi-value">267k<span class="unit">bpd</span></div>
+        <div class="kpi-meta">BMP target: 400k bpd</div>
+        <div class="kpi-delta flat">66.8% of BMP capacity</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ring">
+        <svg class="ring-svg" width="72" height="72" viewBox="0 0 72 72">
+          <circle class="ring-track" cx="36" cy="36" r="31"/>
+          <circle class="ring-arc" id="ring4" cx="36" cy="36" r="31" stroke="#0ea472" data-p="1.0" transform="rotate(-90 36 36)"/>
+          <text x="36" y="35" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" font-weight="700" fill="#0ea472">LTI</text>
+          <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" font-weight="700" fill="#0ea472">FREE</text>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Safe Work Hours</div>
+        <div class="kpi-value">125M<span class="unit">hrs</span></div>
+        <div class="kpi-meta">Zero LTI</div>
+        <div class="kpi-delta good">✓ Zero Lost-Time Injuries</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bsc-section">
+    <div class="section-title">Balanced Scorecard</div>
+    <div class="bsc-grid">
+      <div class="bsc-quad" onclick="this.classList.toggle('active')">
+        <div class="bsc-quad-title">Financial</div>
+        <div class="bsc-row"><span class="bsc-row-label">Revenue vs. Budget</span><div class="bsc-bar-wrap"><div class="bsc-bar green" data-w="1.0"></div></div><span class="bsc-row-val">102.3%</span><div class="rag g"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">EBITDA Margin</span><div class="bsc-bar-wrap"><div class="bsc-bar green" data-w="0.86"></div></div><span class="bsc-row-val">34.2%</span><div class="rag g"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">Cost per Barrel</span><div class="bsc-bar-wrap"><div class="bsc-bar amber" data-w="0.78"></div></div><span class="bsc-row-val">$18.4</span><div class="rag a"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">Capital Efficiency</span><div class="bsc-bar-wrap"><div class="bsc-bar green" data-w="0.915"></div></div><span class="bsc-row-val">91.5%</span><div class="rag g"></div></div>
+      </div>
+      <div class="bsc-quad" onclick="this.classList.toggle('active')">
+        <div class="bsc-quad-title">Stakeholder</div>
+        <div class="bsc-row"><span class="bsc-row-label">Govt. KPI Alignment</span><div class="bsc-bar-wrap"><div class="bsc-bar green" data-w="0.948"></div></div><span class="bsc-row-val">94.8%</span><div class="rag g"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">Refinery Offtake</span><div class="bsc-bar-wrap"><div class="bsc-bar green" data-w="0.981"></div></div><span class="bsc-row-val">98.1%</span><div class="rag g"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">Export Fulfilment</span><div class="bsc-bar-wrap"><div class="bsc-bar amber" data-w="0.892"></div></div><span class="bsc-row-val">89.2%</span><div class="rag a"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">Customer Satisfaction</span><div class="bsc-bar-wrap"><div class="bsc-bar green" data-w="0.84"></div></div><span class="bsc-row-val">4.2 / 5</span><div class="rag g"></div></div>
+      </div>
+      <div class="bsc-quad" onclick="this.classList.toggle('active')">
+        <div class="bsc-quad-title">Internal Process</div>
+        <div class="bsc-row"><span class="bsc-row-label">Safety TRIR</span><div class="bsc-bar-wrap"><div class="bsc-bar green" data-w="0.95"></div></div><span class="bsc-row-val">0.18</span><div class="rag g"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">Refinery Utilisation</span><div class="bsc-bar-wrap"><div class="bsc-bar green" data-w="0.964"></div></div><span class="bsc-row-val">96.4%</span><div class="rag g"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">Process Reliability</span><div class="bsc-bar-wrap"><div class="bsc-bar green" data-w="0.987"></div></div><span class="bsc-row-val">98.7%</span><div class="rag g"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">Delivery Timeliness</span><div class="bsc-bar-wrap"><div class="bsc-bar amber" data-w="0.931"></div></div><span class="bsc-row-val">93.1%</span><div class="rag a"></div></div>
+      </div>
+      <div class="bsc-quad" onclick="this.classList.toggle('active')">
+        <div class="bsc-quad-title">Learning &amp; Growth</div>
+        <div class="bsc-row"><span class="bsc-row-label">Training Completion</span><div class="bsc-bar-wrap"><div class="bsc-bar amber" data-w="0.873"></div></div><span class="bsc-row-val">87.3%</span><div class="rag a"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">Innovation Initiatives</span><div class="bsc-bar-wrap"><div class="bsc-bar green" data-w="0.8"></div></div><span class="bsc-row-val">12 / 15</span><div class="rag g"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">Digital Transformation</span><div class="bsc-bar-wrap"><div class="bsc-bar amber" data-w="0.712"></div></div><span class="bsc-row-val">71.2%</span><div class="rag a"></div></div>
+        <div class="bsc-row"><span class="bsc-row-label">Talent Retention</span><div class="bsc-bar-wrap"><div class="bsc-bar green" data-w="0.948"></div></div><span class="bsc-row-val">94.8%</span><div class="rag g"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="chart-card-title">SBU Performance</div>
+      <svg id="sbu-svg" viewBox="0 0 300 288" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">12-Month GPS Trend</div>
+      <svg id="trend-svg" viewBox="0 0 900 185" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+  </div>
+
+  <div class="bottom-row">
+    <div class="card" style="padding:1.25rem;">
+      <div class="section-title">Periodic Reports</div>
+      <table class="rtbl">
+        <thead><tr><th>Report</th><th>Scope</th><th>Period</th><th></th></tr></thead>
+        <tbody>
+          <tr><td class="tbl-main">Q1 2025 Scorecard</td><td>Group</td><td>Jan–Mar</td><td><button class="view-btn">View</button></td></tr>
+          <tr><td class="tbl-main">Upstream Deep-Dive</td><td>SBU</td><td>Q1–Q3</td><td><button class="view-btn">View</button></td></tr>
+          <tr><td class="tbl-main">Capital Portfolio Status</td><td>Group</td><td>Q3 2025</td><td><button class="view-btn">View</button></td></tr>
+          <tr><td class="tbl-main">BSC Mid-Year Review</td><td>Group</td><td>H1 2025</td><td><button class="view-btn">View</button></td></tr>
+          <tr><td class="tbl-main">BANAGAS Benchmark</td><td>SBU</td><td>Q2 2025</td><td><button class="view-btn">View</button></td></tr>
+          <tr><td class="tbl-main">BMP Progress Report</td><td>Capital</td><td>Q3 2025</td><td><button class="view-btn">View</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card" style="padding:1.25rem;">
+      <div class="section-title">Alerts &amp; Actions</div>
+      <div class="alert-row"><div class="alert-icon crit">⚠</div><div><div class="alert-title">Upstream Schedule Risk</div><div class="alert-desc">Field development behind 6 weeks — intervention required</div></div></div>
+      <div class="alert-row"><div class="alert-icon warn">↓</div><div><div class="alert-title">BANAGAS Below Target</div><div class="alert-desc">Q3 score 88% vs. 90% target — recovery plan due Oct 1</div></div></div>
+      <div class="alert-row"><div class="alert-icon warn">↓</div><div><div class="alert-title">Export Contract Gap</div><div class="alert-desc">3.2% fulfilment gap — commercial review active</div></div></div>
+      <div class="alert-row"><div class="alert-icon info">i</div><div><div class="alert-title">TotalEnergies Partnership</div><div class="alert-desc">Strategic MOU signed — upstream JV under review</div></div></div>
+      <div class="alert-row"><div class="alert-icon good">✓</div><div><div class="alert-title">BMP Inaugurated</div><div class="alert-desc">Bapco Modernisation Programme fully commissioned</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- OPERATIONS -->
+<div id="view-operations" class="view">
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-ring"><svg class="ring-svg" width="72" height="72" viewBox="0 0 72 72"><circle class="ring-track" cx="36" cy="36" r="31"/><circle class="ring-arc" cx="36" cy="36" r="31" stroke="#64ffda" data-p="0.964" transform="rotate(-90 36 36)"/><text x="36" y="40" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" font-weight="700" fill="#e6f1ff">96.4%</text></svg></div>
+      <div class="kpi-body"><div class="kpi-label">Refinery Utilisation</div><div class="kpi-value">96.4<span class="unit">%</span></div><div class="kpi-meta">Target: 95%</div><div class="kpi-delta up">▲ +1.4 pp on target</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ring"><svg class="ring-svg" width="72" height="72" viewBox="0 0 72 72"><circle class="ring-track" cx="36" cy="36" r="31"/><circle class="ring-arc" cx="36" cy="36" r="31" stroke="#64ffda" data-p="0.987" transform="rotate(-90 36 36)"/><text x="36" y="40" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" font-weight="700" fill="#e6f1ff">98.7%</text></svg></div>
+      <div class="kpi-body"><div class="kpi-label">Process Reliability</div><div class="kpi-value">98.7<span class="unit">%</span></div><div class="kpi-meta">Target: 97%</div><div class="kpi-delta up">▲ +1.7 pp on target</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ring"><svg class="ring-svg" width="72" height="72" viewBox="0 0 72 72"><circle class="ring-track" cx="36" cy="36" r="31"/><circle class="ring-arc" cx="36" cy="36" r="31" stroke="#d4881a" data-p="0.892" transform="rotate(-90 36 36)"/><text x="36" y="40" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" font-weight="700" fill="#e6f1ff">89.2%</text></svg></div>
+      <div class="kpi-body"><div class="kpi-label">Export Fulfilment</div><div class="kpi-value">89.2<span class="unit">%</span></div><div class="kpi-meta">Target: 92%</div><div class="kpi-delta warn">▼ −2.8 pp below target</div></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-ring"><svg class="ring-svg" width="72" height="72" viewBox="0 0 72 72"><circle class="ring-track" cx="36" cy="36" r="31"/><circle class="ring-arc" cx="36" cy="36" r="31" stroke="#d4881a" data-p="0.931" transform="rotate(-90 36 36)"/><text x="36" y="40" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" font-weight="700" fill="#e6f1ff">93.1%</text></svg></div>
+      <div class="kpi-body"><div class="kpi-label">Delivery Timeliness</div><div class="kpi-value">93.1<span class="unit">%</span></div><div class="kpi-meta">Target: 95%</div><div class="kpi-delta warn">▼ −1.9 pp below target</div></div>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="chart-card-title">SBU Operational Score</div>
+      <svg id="ops-svg" viewBox="0 0 300 288" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Production Throughput vs. BMP Target</div>
+      <div class="tput-section">
+        <div class="tput-row"><span class="tput-label">Crude Processing</span><div class="tput-bars"><div class="tput-bar-wrap"><div class="tput-inner now" data-w="0.668"></div></div><div class="tput-bar-wrap"><div class="tput-inner target" data-w="1.0"></div></div></div><span class="tput-val">267k bpd</span></div>
+        <div class="tput-row"><span class="tput-label">ULS Diesel</span><div class="tput-bars"><div class="tput-bar-wrap"><div class="tput-inner now" data-w="0.72"></div></div><div class="tput-bar-wrap"><div class="tput-inner target" data-w="1.0"></div></div></div><span class="tput-val">+72% uplift</span></div>
+        <div class="tput-row"><span class="tput-label">Jet Fuel</span><div class="tput-bars"><div class="tput-bar-wrap"><div class="tput-inner now" data-w="0.90"></div></div><div class="tput-bar-wrap"><div class="tput-inner target" data-w="1.0"></div></div></div><span class="tput-val">+90% uplift</span></div>
+        <div class="tput-row"><span class="tput-label">Storage</span><div class="tput-bars"><div class="tput-bar-wrap"><div class="tput-inner now" data-w="0.74"></div></div><div class="tput-bar-wrap"><div class="tput-inner target" data-w="1.0"></div></div></div><span class="tput-val">14M bbl</span></div>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--teal)"></span>Current</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:rgba(100,255,218,0.22)"></span>BMP Target</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BMP PORTFOLIO -->
+<div id="view-bmp" class="view">
+  <div class="stat-strip">
+    <div class="stat-cell"><div class="stat-label">BMP Investment</div><div class="stat-num">$4.2B</div><div class="stat-sub">Total committed capital</div></div>
+    <div class="stat-cell"><div class="stat-label">Greenfield Units</div><div class="stat-num">21</div><div class="stat-sub">New process units</div></div>
+    <div class="stat-cell"><div class="stat-label">Brownfield Units</div><div class="stat-num">53</div><div class="stat-sub">Upgraded units</div></div>
+  </div>
+  <div class="section-title">Key Process Units</div>
+  <div class="unit-grid">
+    <div class="unit-card"><div class="unit-tag">Unit 1</div><div class="unit-name">Resid Hydrocracking Unit</div><div class="unit-pct">82%</div><div class="unit-bar-wrap"><div class="unit-bar" data-w="0.82"></div></div><div class="unit-status">Commissioning complete</div></div>
+    <div class="unit-card"><div class="unit-tag">Unit 2</div><div class="unit-name">New Crude &amp; Vacuum Unit</div><div class="unit-pct">91%</div><div class="unit-bar-wrap"><div class="unit-bar" data-w="0.91"></div></div><div class="unit-status">Operational — ramp-up</div></div>
+    <div class="unit-card"><div class="unit-tag">Unit 3</div><div class="unit-name">Second Hydrocracker</div><div class="unit-pct amber">68%</div><div class="unit-bar-wrap"><div class="unit-bar amber" data-w="0.68"></div></div><div class="unit-status">Minor delay — Q4 target</div></div>
+    <div class="unit-card"><div class="unit-tag">Unit 4</div><div class="unit-name">#3 Sulphur Plant</div><div class="unit-pct">95%</div><div class="unit-bar-wrap"><div class="unit-bar" data-w="0.95"></div></div><div class="unit-status">Fully operational</div></div>
+  </div>
+  <div class="section-title">Capital Portfolio</div>
+  <div class="card" style="padding:1.25rem;">
+    <table class="pi-table">
+      <thead><tr><th>Project</th><th class="r">Budget</th><th>Progress</th><th class="r">Deadline</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="pi-name">Bapco Modernisation Programme</td><td class="pi-val">$4.2B</td><td><div class="pi-prog-wrap"><div class="pi-prog" data-w="1.0"></div></div></td><td class="pi-val">Dec 2024</td><td><span class="status-chip sc-done">Inaugurated</span></td></tr>
+        <tr><td class="pi-name">Gas Network Expansion</td><td class="pi-val">$380M</td><td><div class="pi-prog-wrap"><div class="pi-prog amber" data-w="0.45"></div></div></td><td class="pi-val">Jun 2026</td><td><span class="status-chip sc-delay">Minor Delay</span></td></tr>
+        <tr><td class="pi-name">Digital Transformation</td><td class="pi-val">$120M</td><td><div class="pi-prog-wrap"><div class="pi-prog" data-w="0.71"></div></div></td><td class="pi-val">Dec 2025</td><td><span class="status-chip sc-on">On Track</span></td></tr>
+        <tr><td class="pi-name">Renewable Energy Initiative</td><td class="pi-val">$200M</td><td><div class="pi-prog-wrap"><div class="pi-prog" data-w="0.23"></div></div></td><td class="pi-val">Mar 2027</td><td><span class="status-chip sc-on">On Track</span></td></tr>
+        <tr><td class="pi-name">Upstream Field Development</td><td class="pi-val">$650M</td><td><div class="pi-prog-wrap"><div class="pi-prog red" data-w="0.61"></div></div></td><td class="pi-val">Sep 2025</td><td><span class="status-chip sc-behind">Behind</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <div class="section-title">BMP Summary</div>
+    <div class="bmp-summary-card">
+      <div class="bmp-summary-row"><span class="bmp-s-label">Crude Processing Capacity (post-BMP)</span><span class="bmp-s-val">400,000 bpd</span></div>
+      <div class="bmp-summary-row"><span class="bmp-s-label">ULS Diesel Production Uplift</span><span class="bmp-s-val">+72%</span></div>
+      <div class="bmp-summary-row"><span class="bmp-s-label">Jet Fuel Production Uplift</span><span class="bmp-s-val">+90%</span></div>
+      <div class="bmp-summary-row"><span class="bmp-s-label">New Storage Capacity</span><span class="bmp-s-val">14M bbl</span></div>
+      <div class="bmp-summary-row"><span class="bmp-s-label">New Process Units (Greenfield)</span><span class="bmp-s-val">21</span></div>
+      <div class="bmp-summary-row"><span class="bmp-s-label">Upgraded Units (Brownfield)</span><span class="bmp-s-val">53</span></div>
+      <div class="bmp-summary-row"><span class="bmp-s-label">Total Investment</span><span class="bmp-s-val">$4.2B</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SAFETY -->
+<div id="view-safety" class="view">
+  <div class="safety-hero">
+    <div class="safety-hero-label">Safe Work Hours — Zero Lost-Time Injuries</div>
+    <div class="safety-hero-num" id="sfty-ctr">125,000,000</div>
+    <div class="safety-hero-sub">and counting &nbsp;·&nbsp; FY 2025</div>
+  </div>
+  <div class="section-title">Safety KPIs</div>
+  <div class="safety-kpi-grid">
+    <div class="card" style="padding:1.1rem 1.25rem;">
+      <div class="bsc-quad-title" style="margin-bottom:0.75rem;">Injury Rates</div>
+      <div class="safety-kpi-row"><span class="safety-kpi-name">TRIR (Total Recordable)</span><span class="safety-kpi-val">0.18</span></div>
+      <div class="safety-kpi-row"><span class="safety-kpi-name">LTI Rate</span><span class="safety-kpi-val zero">0.00</span></div>
+      <div class="safety-kpi-row"><span class="safety-kpi-name">Process Safety Events</span><span class="safety-kpi-val warn">1</span></div>
+    </div>
+    <div class="card" style="padding:1.1rem 1.25rem;">
+      <div class="bsc-quad-title" style="margin-bottom:0.75rem;">Culture &amp; Compliance</div>
+      <div class="safety-kpi-row"><span class="safety-kpi-name">Near-Miss Reporting Rate</span><span class="safety-kpi-val">87.3%</span></div>
+      <div class="safety-kpi-row"><span class="safety-kpi-name">Emergency Drill Compliance</span><span class="safety-kpi-val">96.0%</span></div>
+      <div class="safety-kpi-row"><span class="safety-kpi-name">Safety Observations Filed</span><span class="safety-kpi-val">2,847</span></div>
+    </div>
+    <div class="card" style="padding:1.1rem 1.25rem;">
+      <div class="bsc-quad-title" style="margin-bottom:0.75rem;">Sustainability</div>
+      <div class="safety-kpi-row"><span class="safety-kpi-name">GHG Reduction Target</span><span class="safety-kpi-val">30% by 2035</span></div>
+      <div class="safety-kpi-row"><span class="safety-kpi-name">Energy Efficiency Improvement</span><span class="safety-kpi-val">+4.2%</span></div>
+      <div class="safety-kpi-row"><span class="safety-kpi-name">Renewable Energy Projects</span><span class="safety-kpi-val">3 Active</span></div>
+    </div>
+  </div>
+  <div class="section-title">Historical Milestones</div>
+  <div class="fact-grid">
+    <div class="fact-card"><div class="fact-label">Company Founded</div><div class="fact-val">1929</div><div class="fact-sub">Bahrain Petroleum Co.</div></div>
+    <div class="fact-card"><div class="fact-label">First Oil Discovery</div><div class="fact-val">1932</div><div class="fact-sub">Jebel ad-Dukhan field</div></div>
+    <div class="fact-card"><div class="fact-label">First Export</div><div class="fact-val">1934</div><div class="fact-sub">First tanker shipment</div></div>
+    <div class="fact-card"><div class="fact-label">Storage Capacity</div><div class="fact-val">14M</div><div class="fact-sub">Barrels total capacity</div></div>
+  </div>
+</div>
+
+</main>
+
+<script>
+const P = {
+  q1:  { gps: 82.1, sbus: [88,85,87,90,76,80],  trend: [79,80,82,82,null,null,null,null,null,null,null,null] },
+  q2:  { gps: 85.3, sbus: [91,87,89,93,80,82],  trend: [79,80,82,82,84,85,85,null,null,null,null,null] },
+  q3:  { gps: 87.4, sbus: [94,88,91,96,79,83],  trend: [82,79,84,86,85,88,87,89,91,87,88,87.4] },
+  q4:  { gps: 89.1, sbus: [96,90,93,97,82,85],  trend: [82,79,84,86,85,88,87,89,91,87,88,89.1] },
+  ytd: { gps: 87.4, sbus: [94,88,91,96,79,83],  trend: [82,79,84,86,85,88,87,89,91,87,88,87.4] }
+};
+const SNAMES = ['Bapco Refining','BANAGAS','Tatweer Pet.','Bapco Trading','Bapco Upstream','Digital Svcs'];
+const STGTS  = [90, 90, 88, 92, 85, 80];
+let activePeriod = 'q3';
+
+const ease = p => 1 - Math.pow(1 - p, 3);
+
+function animateRings(container) {
+  const C = 2 * Math.PI * 31;
+  container.querySelectorAll('.ring-arc[data-p]').forEach(el => {
+    const target = parseFloat(el.dataset.p) * C;
+    el.style.strokeDashoffset = C;
+    let start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / 900, 1);
+      el.style.strokeDashoffset = C - ease(p) * target;
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+function sbu(svgId, data) {
+  const el = document.getElementById(svgId); if (!el) return;
+  const W = 300, pad = { t:18, b:22, l:88, r:14 };
+  const bw = W - pad.l - pad.r, maxV = 100, minV = 60, rh = 34;
+  let g = '';
+  [70,80,90,100].forEach(v => {
+    const x = pad.l + (v - minV) / (maxV - minV) * bw;
+    g += `<line x1="${x}" y1="${pad.t}" x2="${x}" y2="${pad.t + data.length * rh - 4}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/><text x="${x}" y="${pad.t + data.length * rh + 12}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="#8892b0">${v}</text>`;
+  });
+  data.forEach((val, i) => {
+    const y = pad.t + i * rh, tgt = STGTS[i];
+    const w = (val - minV) / (maxV - minV) * bw;
+    const tx = pad.l + (tgt - minV) / (maxV - minV) * bw;
+    const color = val >= tgt ? '#64ffda' : val >= tgt - 3 ? '#d4881a' : '#e8192c';
+    g += `<text x="${pad.l - 6}" y="${y + 13}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#a8b2d8">${SNAMES[i]}</text><rect class="sbu-bar" x="${pad.l}" y="${y + 4}" height="16" rx="2" fill="${color}" opacity="0.85" data-final="${w}" width="0" data-name="${SNAMES[i]}" data-val="${val}" data-tgt="${tgt}"/><line x1="${tx}" y1="${y + 2}" x2="${tx}" y2="${y + 22}" stroke="rgba(232,25,44,0.55)" stroke-width="1.5" stroke-dasharray="3,2"/>`;
+  });
+  el.innerHTML = g;
+  el.querySelectorAll('.sbu-bar').forEach(bar => {
+    const target = parseFloat(bar.dataset.final); let start = null;
+    function step(ts) { if (!start) start = ts; const p = Math.min((ts - start) / 800, 1); bar.setAttribute('width', ease(p) * target); if (p < 1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+    bar.addEventListener('mouseenter', e => showTip(e, `<strong>${bar.dataset.name}</strong> · ${bar.dataset.val}% <span style="color:var(--slate)">(T: ${bar.dataset.tgt}%)</span>`));
+    bar.addEventListener('mouseleave', hideTip);
+    bar.addEventListener('mousemove', moveTip);
+  });
+}
+
+function trend(data) {
+  const el = document.getElementById('trend-svg'); if (!el) return;
+  const W = 900, H = 185, pad = { t:12, b:28, l:32, r:24 };
+  const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b, minY = 74, maxY = 96;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const pts = data.map((v, i) => v !== null ? { x: pad.l + i / 11 * cw, y: pad.t + (1 - (v - minY) / (maxY - minY)) * ch, v, i } : null).filter(Boolean);
+  let g = '<defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#64ffda" stop-opacity="0.18"/><stop offset="100%" stop-color="#64ffda" stop-opacity="0"/></linearGradient></defs>';
+  [76,80,84,88,92].forEach(v => { const y = pad.t + (1 - (v - minY) / (maxY - minY)) * ch; g += `<line x1="${pad.l}" y1="${y}" x2="${W - pad.r}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/><text x="${pad.l - 4}" y="${y + 3.5}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#8892b0">${v}</text>`; });
+  const ty = pad.t + (1 - (85 - minY) / (maxY - minY)) * ch;
+  g += `<line x1="${pad.l}" y1="${ty}" x2="${W - pad.r}" y2="${ty}" stroke="rgba(232,25,44,0.45)" stroke-width="1" stroke-dasharray="5,4"/><text x="${W - pad.r + 4}" y="${ty + 3.5}" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(232,25,44,0.65)">T</text>`;
+  months.forEach((m, i) => { const x = pad.l + i / 11 * cw; g += `<text x="${x}" y="${H - 4}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="#8892b0">${m}</text>`; });
+  if (pts.length > 1) { let area = `M ${pts[0].x} ${pad.t + ch} L ${pts[0].x} ${pts[0].y}`; pts.slice(1).forEach(p => { area += ` L ${p.x} ${p.y}`; }); area += ` L ${pts[pts.length-1].x} ${pad.t + ch} Z`; g += `<path d="${area}" fill="url(#tg)"/>`; }
+  if (pts.length > 1) { let d = `M ${pts[0].x} ${pts[0].y}`; pts.slice(1).forEach(p => { d += ` L ${p.x} ${p.y}`; }); let len = 0; pts.forEach((p, i) => { if (i === 0) return; const pp = pts[i-1]; len += Math.hypot(p.x - pp.x, p.y - pp.y); }); g += `<path id="tpath" d="${d}" fill="none" stroke="#64ffda" stroke-width="2" stroke-dasharray="${len}" stroke-dashoffset="${len}" stroke-linecap="round" stroke-linejoin="round"/>`; }
+  pts.forEach((p, idx) => { const color = p.v >= 85 ? '#0ea472' : '#e8192c'; const r = idx === pts.length - 1 ? 5 : 3.5; g += `<circle class="tpt" cx="${p.x}" cy="${p.y}" r="${r}" fill="${color}" stroke="#112240" stroke-width="1.5" data-v="${p.v}" data-m="${months[p.i]}" style="cursor:crosshair"/>`; });
+  el.innerHTML = g;
+  const path = el.querySelector('#tpath');
+  if (path) { const len = parseFloat(path.getAttribute('stroke-dasharray')); let start = null; function step(ts) { if (!start) start = ts; const prog = Math.min((ts - start) / 1500, 1); path.style.strokeDashoffset = len * (1 - ease(prog)); if (prog < 1) requestAnimationFrame(step); } requestAnimationFrame(step); }
+  el.querySelectorAll('.tpt').forEach(pt => { pt.addEventListener('mouseenter', e => showTip(e, `<strong>${pt.dataset.m}</strong> &nbsp; GPS: <strong>${pt.dataset.v}%</strong>`)); pt.addEventListener('mouseleave', hideTip); pt.addEventListener('mousemove', moveTip); });
+}
+
+const tip = document.getElementById('tooltip');
+function showTip(e, html) { tip.innerHTML = html; tip.style.opacity = '1'; moveTip(e); }
+function hideTip() { tip.style.opacity = '0'; }
+function moveTip(e) { tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY - 8) + 'px'; }
+
+function animateBscBars() { document.querySelectorAll('.bsc-bar[data-w]').forEach(bar => { bar.style.transform = 'scaleX(0)'; requestAnimationFrame(() => setTimeout(() => { bar.style.transform = `scaleX(${parseFloat(bar.dataset.w)})`; }, 40)); }); }
+function animateTput()    { document.querySelectorAll('.tput-inner[data-w]').forEach(bar => { bar.style.transform = 'scaleX(0)'; requestAnimationFrame(() => setTimeout(() => { bar.style.transform = `scaleX(${parseFloat(bar.dataset.w)})`; }, 40)); }); }
+function animateUnitBars(){ document.querySelectorAll('.unit-bar[data-w]').forEach(bar => { bar.style.transform = 'scaleX(0)'; requestAnimationFrame(() => setTimeout(() => { bar.style.transform = `scaleX(${parseFloat(bar.dataset.w)})`; }, 40)); }); }
+function animatePortfolio(){ document.querySelectorAll('.pi-prog[data-w]').forEach(bar => { bar.style.transform = 'scaleX(0)'; requestAnimationFrame(() => setTimeout(() => { bar.style.transform = `scaleX(${parseFloat(bar.dataset.w)})`; }, 40)); }); }
+
+function animateGps(targetVal) {
+  const el = document.getElementById('gps-val'); const lbl = document.getElementById('gps-lbl'); if (!el) return;
+  const start = parseFloat(el.textContent) || 0; let t0 = null;
+  function step(ts) { if (!t0) t0 = ts; const p = Math.min((ts - t0) / 700, 1); const v = start + (targetVal - start) * ease(p); el.innerHTML = v.toFixed(1) + '<span class="unit">%</span>'; if (lbl) lbl.textContent = v.toFixed(1) + '%'; if (p < 1) requestAnimationFrame(step); }
+  requestAnimationFrame(step);
+}
+
+let sftyInterval = null;
+function startSafetyCounter() {
+  const el = document.getElementById('sfty-ctr'); if (!el) return;
+  let count = 125_000_000; el.textContent = count.toLocaleString();
+  if (sftyInterval) clearInterval(sftyInterval);
+  sftyInterval = setInterval(() => { count += Math.floor(Math.random() * 3) + 1; el.textContent = count.toLocaleString(); }, 2200);
+}
+
+function initView(tab) {
+  const d = P[activePeriod];
+  if (tab === 'overview') {
+    const r1 = document.getElementById('ring1'); if (r1) r1.dataset.p = (d.gps / 100).toFixed(4);
+    animateRings(document.getElementById('view-overview')); animateBscBars(); sbu('sbu-svg', d.sbus); trend(d.trend); animateGps(d.gps);
+  } else if (tab === 'operations') {
+    animateRings(document.getElementById('view-operations')); sbu('ops-svg', d.sbus); animateTput();
+  } else if (tab === 'bmp') {
+    animateUnitBars(); animatePortfolio();
+  } else if (tab === 'safety') {
+    startSafetyCounter();
+  }
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    const view = document.getElementById('view-' + btn.dataset.tab);
+    if (view) view.classList.add('active');
+    initView(btn.dataset.tab);
+  });
+});
+
+document.querySelectorAll('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); activePeriod = btn.dataset.period;
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) initView(activeTab.dataset.tab);
+  });
+});
+
+document.getElementById('export-btn').addEventListener('click', function() {
+  this.textContent = '⏳ Generating…'; this.disabled = true;
+  setTimeout(() => { this.textContent = '↓ Export PDF'; this.disabled = false; }, 1200);
+});
+
+initView('overview');
+</script>
+</body>
+</html>
