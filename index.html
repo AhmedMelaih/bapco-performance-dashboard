@@ -99,13 +99,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 }
 
 /* Logo */
-.logo-link{display:flex;align-items:center;gap:10px;flex-shrink:0;text-decoration:none;transition:opacity .2s}
+.logo-link{display:flex;align-items:center;flex-shrink:0;text-decoration:none;transition:opacity .2s}
 .logo-link:hover{opacity:.82}
-.logo-bapco{font-size:1.18rem;font-weight:700;letter-spacing:.03em;color:var(--navy);line-height:1;
-  transition:color .3s}
-.logo-energies{font-size:.62rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--text3);line-height:1;margin-top:2px;transition:color .3s}
-.logo-diamond{width:28px;height:28px;flex-shrink:0}
+.bapco-logo{height:30px;width:auto;display:block;color:var(--navy);transition:color .3s}
+[data-theme="dark"] .bapco-logo{color:#cfe1f5}
 .hdr-div{width:1px;height:30px;background:var(--border2);flex-shrink:0}
 .hdr-label{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
   color:var(--text3);white-space:nowrap;flex-shrink:0}
@@ -125,6 +122,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   border-radius:100px;padding:4px 12px;flex-shrink:0}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+
+/* Dark-mode logo invert */
+[data-theme="dark"] .bapco-logo{filter:brightness(0) invert(1);opacity:.85}
 
 /* Theme toggle */
 .theme-btn{
@@ -239,6 +239,17 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .kpi-delta.down{background:var(--tag-r-bg);color:var(--red);  border:1px solid var(--tag-r-bd)}
 .kpi-delta.warn{background:var(--tag-a-bg);color:var(--amber);border:1px solid var(--tag-a-bd)}
 .kpi-delta.flat{background:var(--tag-b-bg);color:var(--accent);border:1px solid var(--tag-b-bd)}
+/* KPI Progress Bars */
+.kpi-foot{margin-top:13px;padding-top:11px;border-top:1px solid var(--border)}
+.kpi-pbar-wrap{height:7px;background:var(--ring-track);border-radius:4px;position:relative;overflow:visible}
+.kpi-pbar{position:absolute;top:0;left:0;right:0;bottom:0;border-radius:4px;
+  transform-origin:left;transform:scaleX(0);
+  transition:transform 1.2s cubic-bezier(.16,1,.3,1)}
+.kpi-tgt-tick{position:absolute;top:-5px;width:2px;height:17px;
+  background:var(--text2);border-radius:1px;transform:translateX(-50%);opacity:.5}
+.kpi-foot-row{display:flex;justify-content:space-between;align-items:center;margin-top:6px;
+  font-size:.63rem;color:var(--text3);line-height:1}
+.kpi-foot-row b{font-weight:600;color:var(--text2)}
 
 /* ═══════════ BSC ═══════════ */
 .bsc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -484,8 +495,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   .shell{padding:16px 16px 88px}
   /* Compact top header */
   .hdr-top{height:54px;padding:0 16px;gap:10px}
-  .logo-energies{display:none}
-  .logo-diamond{width:24px;height:24px}
+  .bapco-logo{height:24px}
   .period-row{gap:3px}
   .pbtn{font-size:.66rem;padding:4px 10px}
   .live-pip{display:none}
@@ -535,22 +545,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   <div class="hdr-top">
     <!-- Logo -->
     <a class="logo-link" href="https://www.bapcoenergies.com" target="_blank" rel="noopener">
-      <svg class="logo-diamond" viewBox="0 0 28 28" fill="none">
-        <polygon points="14,1 27,14 14,27 1,14" fill="url(#dg)"/>
-        <polygon points="14,6 23,14 14,22 5,14" fill="none" stroke="white" stroke-width="1" opacity=".5"/>
-        <circle cx="14" cy="14" r="3.5" fill="white" opacity=".9"/>
-        <defs>
-          <linearGradient id="dg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#4544e6"/>
-            <stop offset="50%" stop-color="#2783d5"/>
-            <stop offset="100%" stop-color="#31e7df"/>
-          </linearGradient>
-        </defs>
-      </svg>
-      <div>
-        <div class="logo-bapco">BAPCO</div>
-        <div class="logo-energies">ENERGIES</div>
-      </div>
+      <img src="bapco-energies-logo-light.svg" class="bapco-logo" alt="Bapco Energies">
     </a>
     <div class="hdr-div"></div>
     <span class="hdr-label">Group Performance Dashboard</span>
@@ -622,8 +617,15 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         </div>
       </div>
       <div class="kpi-num" id="gps-val">87.4<span class="unit">%</span></div>
-      <div class="kpi-sub">Target: 85% · FY 2025</div>
-      <div class="kpi-delta up">▲ +2.4 pp vs. benchmark</div>
+      <div class="kpi-sub">Group Performance Score · FY 2025</div>
+      <div class="kpi-delta up">▲ +2.4 pp above target</div>
+      <div class="kpi-foot">
+        <div class="kpi-pbar-wrap">
+          <div class="kpi-pbar" id="kpi-gps-bar" style="background:var(--accent)" data-w="0.874"></div>
+          <div class="kpi-tgt-tick" style="left:85%"></div>
+        </div>
+        <div class="kpi-foot-row"><span>0%</span><span>Target <b>85%</b></span><span>100%</span></div>
+      </div>
     </div>
     <div class="kpi-card c-amber">
       <div class="kpi-top">
@@ -636,8 +638,15 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         </div>
       </div>
       <div class="kpi-num">7<span class="unit">/9</span></div>
-      <div class="kpi-sub">2 active intervention plans</div>
-      <div class="kpi-delta warn">⚠ Upstream · BANAGAS</div>
+      <div class="kpi-sub">Strategic Business Units · 2 interventions active</div>
+      <div class="kpi-delta warn">⚠ Upstream · BANAGAS below target</div>
+      <div class="kpi-foot">
+        <div class="kpi-pbar-wrap">
+          <div class="kpi-pbar" style="background:var(--amber)" data-w="0.778"></div>
+          <div class="kpi-tgt-tick" style="left:88.9%"></div>
+        </div>
+        <div class="kpi-foot-row"><span>0</span><span>Target <b>8/9</b></span><span>9</span></div>
+      </div>
     </div>
     <div class="kpi-card c-blue">
       <div class="kpi-top">
@@ -650,8 +659,15 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         </div>
       </div>
       <div class="kpi-num">267k<span class="unit">bpd</span></div>
-      <div class="kpi-sub">BMP target: 400k bpd (+42%)</div>
+      <div class="kpi-sub">Crude throughput · BMP full capacity 400k bpd</div>
       <div class="kpi-delta flat">66.8% of BMP capacity</div>
+      <div class="kpi-foot">
+        <div class="kpi-pbar-wrap">
+          <div class="kpi-pbar" style="background:var(--accent)" data-w="0.668"></div>
+          <div class="kpi-tgt-tick" style="left:100%"></div>
+        </div>
+        <div class="kpi-foot-row"><span>0</span><span>Ramp-up to <b>400k bpd</b></span><span>100%</span></div>
+      </div>
     </div>
     <div class="kpi-card c-green">
       <div class="kpi-top">
@@ -664,8 +680,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
         </div>
       </div>
       <div class="kpi-num">125M<span class="unit">hrs</span></div>
-      <div class="kpi-sub">Zero Lost-Time Injuries</div>
+      <div class="kpi-sub">Zero Lost-Time Injuries · FY 2025</div>
       <div class="kpi-delta up">✓ RoSPA Award 2024</div>
+      <div class="kpi-foot">
+        <div class="kpi-pbar-wrap">
+          <div class="kpi-pbar" style="background:var(--green)" data-w="1.0"></div>
+        </div>
+        <div class="kpi-foot-row"><span>Target achieved</span><span style="color:var(--green);font-weight:600">Zero LTI ✓</span></div>
+      </div>
     </div>
   </div>
 
@@ -1094,8 +1116,9 @@ function initView(tab){
   const d=P[activePeriod];
   if(tab==='overview'){
     const r1=document.getElementById('ring1');if(r1)r1.dataset.p=(d.gps/100).toFixed(4);
+    const gBar=document.getElementById('kpi-gps-bar');if(gBar)gBar.dataset.w=(d.gps/100).toFixed(4);
     doRings(document.getElementById('view-overview'));
-    animBars('.bsc-bar'); sbu('sbu-svg',d.sbus); trend(d.trend); animGps(d.gps);
+    animBars('.kpi-pbar'); animBars('.bsc-bar'); sbu('sbu-svg',d.sbus); trend(d.trend); animGps(d.gps);
   } else if(tab==='operations'){
     doRings(document.getElementById('view-operations'));
     sbu('ops-svg',d.sbus); animBars('.tput-inner');
