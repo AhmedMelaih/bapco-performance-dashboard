@@ -101,8 +101,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 /* Logo */
 .logo-link{display:flex;align-items:center;flex-shrink:0;text-decoration:none;transition:opacity .2s}
 .logo-link:hover{opacity:.82}
-.bapco-logo{height:34px;width:auto;display:block;filter:brightness(0);transition:filter .3s}
-[data-theme="dark"] .bapco-logo{filter:none;opacity:.88}
+.logo-wrap{position:relative;height:34px;flex-shrink:0;display:inline-block}
+.bapco-orig{height:34px;width:auto;display:block}
+.bapco-filtered{position:absolute;top:0;left:0;height:34px;width:auto;filter:brightness(0);clip-path:inset(0 30% 0 0)}
+[data-theme="dark"] .bapco-filtered{display:none}
 .hdr-div{width:1px;height:30px;background:var(--border2);flex-shrink:0}
 .hdr-label{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
   color:var(--text3);white-space:nowrap;flex-shrink:0}
@@ -492,7 +494,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   .shell{padding:16px 16px 88px}
   /* Compact top header */
   .hdr-top{height:54px;padding:0 16px;gap:10px}
-  .bapco-logo{height:24px}
+  .logo-wrap{height:24px}
+  .bapco-orig,.bapco-filtered{height:24px}
   .period-row{gap:3px}
   .pbtn{font-size:.66rem;padding:4px 10px}
   .live-pip{display:none}
@@ -542,7 +545,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   <div class="hdr-top">
     <!-- Logo -->
     <a class="logo-link" href="https://www.bapcoenergies.com" target="_blank" rel="noopener">
-      <img src="bapco-logo.avif" class="bapco-logo" alt="Bapco Energies">
+      <div class="logo-wrap">
+        <img src="bapco-logo.avif" class="bapco-orig" alt="Bapco Energies">
+        <img src="bapco-logo.avif" class="bapco-filtered" aria-hidden="true">
+      </div>
     </a>
     <div class="hdr-div"></div>
     <span class="hdr-label">Group Performance Dashboard</span>
