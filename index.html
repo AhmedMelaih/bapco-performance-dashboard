@@ -103,7 +103,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .logo-link:hover{opacity:.82}
 .logo-wrap{position:relative;height:34px;flex-shrink:0;display:inline-block}
 .bapco-orig{height:34px;width:auto;display:block}
-.bapco-filtered{position:absolute;top:0;left:0;height:34px;width:auto;filter:brightness(0);clip-path:inset(0 30% 0 0)}
+.bapco-filtered{position:absolute;top:0;left:0;height:34px;width:auto;filter:url('#logo-purple');clip-path:inset(0 20% 0 0)}
 [data-theme="dark"] .bapco-filtered{display:none}
 .hdr-div{width:1px;height:30px;background:var(--border2);flex-shrink:0}
 .hdr-label{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
@@ -539,6 +539,19 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 </style>
 </head>
 <body>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <filter id="logo-purple" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <!-- map every visible pixel to dark purple #3d006e regardless of source color -->
+      <feColorMatrix type="matrix" values="
+        0 0 0 0 0.239
+        0 0 0 0 0
+        0 0 0 0 0.431
+        0 0 0 1 0"/>
+    </filter>
+  </defs>
+</svg>
 
 <!-- ═══════════════════ HEADER ═══════════════════ -->
 <header class="site-header">
